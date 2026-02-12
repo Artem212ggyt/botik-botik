@@ -13,13 +13,18 @@ BOT_TOKEN = "8232445082:AAGhkxdf_DvBx4d5BWlILynrzif5uVYgLXQ"
 MUTE_DURATION_MINUTES = 40
 # =====================
 
+# ===== СЕЛЬСКИЙ ФИЛЬТР =====
+VILLAGE_TRIGGERS = ["сельский", "село", "селавый", "деревня", "сило", "силоо", "силооо"]
+VILLAGE_RESPONSE = "ыыы силооо сельский 😕🧐😝😟😝😕😜😕селавый деревня 😕🤩😟😝😟😝😟😕как ти живещдщщщ 🧐😍😜🙂🤓🙂🧐🙃🤓🙃😎🙁алио умри😙🤓😍🧐🤩🙂🤩🙂🥳🤓голубинная почта 😃🙄🤓🤓😎😌🥳силоооо😢🤑😄🙄😊ыыыы затролел🥵🥺🥵🥵🥺😨🥺😓😣😓"
+# ============================
+
 bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 dp = Dispatcher()
 
 # Регулярные выражения
 TG_CHANNEL_LINK_PATTERN = r'(https?://)?(www\.)?(t\.me|telegram\.me|telegram\.dog)/[a-zA-Z0-9_]+'
 ANY_LINK_PATTERN = r'(https?://|www\.)[^\s]+'
-MENTION_PATTERN = r'@(\w+)'  # Все упоминания с захватом имени
+MENTION_PATTERN = r'@(\w+)'
 
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message):
@@ -100,15 +105,9 @@ async def is_channel(username: str) -> bool:
     Проверяет, является ли @username каналом
     """
     try:
-        # Пробуем получить информацию о чате
         chat = await bot.get_chat(f"@{username}")
-        
-        # Проверяем тип чата
-        # channel = канал, supergroup = супергруппа/чат
         return chat.type in ["channel", "supergroup"]
-    except Exception as e:
-        # Если не удалось получить информацию - считаем что это человек
-        # (обычно у каналов боты могут получить инфо, у людей - нет без контакта)
+    except:
         return False
 
 @dp.message()
@@ -117,7 +116,8 @@ async def check_for_spam(message: types.Message):
     Проверяет сообщение на наличие:
     - Ссылок на Telegram каналы
     - Любых внешних ссылок
-    - Упоминаний КАНАЛОВ (автоматически определяет)
+    - Упоминаний КАНАЛОВ
+    - Слова "сельский"/"село"
     """
     if not message.text or message.text.startswith('/'):
         return
@@ -127,6 +127,14 @@ async def check_for_spam(message: types.Message):
     
     if message.chat.type not in ["group", "supergroup"]:
         return
+    
+    # ===== СЕЛЬСКИЙ ФИЛЬТР =====
+    text_lower = message.text.lower()
+    for trigger in VILLAGE_TRIGGERS:
+        if trigger in text_lower:
+            await message.reply(VILLAGE_RESPONSE)
+            break
+    # ============================
     
     try:
         bot_member = await message.chat.get_member(bot.id)
@@ -175,7 +183,6 @@ async def check_for_spam(message: types.Message):
                 reason = "внешняя ссылка"
             
             try:
-                # Применяем мут
                 await bot.restrict_chat_member(
                     chat_id=message.chat.id,
                     user_id=message.from_user.id,
@@ -183,10 +190,8 @@ async def check_for_spam(message: types.Message):
                     until_date=int(mute_until.timestamp())
                 )
                 
-                # Удаляем сообщение
                 await message.delete()
                 
-                # Уведомление
                 notification = (
                     f"🔇 <b>Пользователь замучен</b>\n"
                     f"👤 {message.from_user.mention_html(message.from_user.full_name)}\n"
@@ -207,6 +212,7 @@ async def main():
     print("🚀 Бот kirill_dalbaeb запущен...")
     print("🤖 Автоматически определяю каналы и людей!")
     print("🔇 Мут за: ссылки + упоминания каналов")
+    print("🌾 Сельский фильтр: АКТИВИРОВАН")
     print("✅ Игнорирую: упоминания людей")
     await dp.start_polling(bot)
 
