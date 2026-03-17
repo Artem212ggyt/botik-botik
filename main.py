@@ -9,7 +9,7 @@ from aiogram.enums import ParseMode
 from aiogram.enums.chat_member_status import ChatMemberStatus
 
 # ===== НАСТРОЙКИ =====
-BOT_TOKEN = "8232445082:AAGhkxdf_DvBx4d5BWlILynrzif5uVYgLXQ"
+BOT_TOKEN = "8504421745:AAGT7T_q3ubzDZ4tLS4YV3ddk4MRNqALlpQ"
 MUTE_DURATION_MINUTES = 40
 # =====================
 
